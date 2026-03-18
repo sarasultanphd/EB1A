@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EB-1A / NIW Self-Petition Builder</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header>
+    <div class="logo">EB-1A / NIW Petition Builder</div>
+    <div class="subtitle">AI-powered self-petition drafting tool</div>
+  </header>
+
+  <main>
+    <!-- Step indicators -->
+    <div class="steps" id="steps">
+      <div class="step active" data-step="1"><span>1</span> Petition Type</div>
+      <div class="step" data-step="2"><span>2</span> Your Background</div>
+      <div class="step" data-step="3"><span>3</span> Select Criteria</div>
+      <div class="step" data-step="4"><span>4</span> Evidence Details</div>
+      <div class="step" data-step="5"><span>5</span> Generate Draft</div>
+    </div>
+
+    <!-- Step 1: Petition type -->
+    <section class="card" id="section-1">
+      <h2>Which immigration pathway are you applying for?</h2>
+      <div class="type-grid">
+        <div class="type-card" id="type-EB1A" onclick="selectType('EB1A')">
+          <div class="type-icon">⭐</div>
+          <h3>EB-1A</h3>
+          <p>Extraordinary Ability</p>
+          <ul>
+            <li>For individuals at the very top of their field</li>
+            <li>Must meet 3 of 10 USCIS criteria</li>
+            <li>No job offer required</li>
+            <li>Sciences, arts, education, business, athletics</li>
+          </ul>
+        </div>
+        <div class="type-card" id="type-NIW" onclick="selectType('NIW')">
+          <div class="type-icon">🇺🇸</div>
+          <h3>NIW</h3>
+          <p>National Interest Waiver</p>
+          <ul>
+            <li>For work of national importance to the US</li>
+            <li>Dhanasar 3-prong framework</li>
+            <li>No job offer or labor certification required</li>
+            <li>Advanced degree or exceptional ability</li>
+          </ul>
+        </div>
+      </div>
+      <button class="btn" onclick="goTo(2)" id="btn-step1" disabled>Continue →</button>
+    </section>
+
+    <!-- Step 2: Background -->
+    <section class="card hidden" id="section-2">
+      <h2>Tell us about yourself</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label>Full Name</label>
+          <input type="text" id="full_name" placeholder="Dr. Jane Smith" />
+        </div>
+        <div class="field">
+          <label>Field of Expertise</label>
+          <input type="text" id="field" placeholder="Artificial Intelligence / Machine Learning" />
+        </div>
+        <div class="field">
+          <label>Country of Birth</label>
+          <input type="text" id="country" placeholder="India" />
+        </div>
+        <div class="field">
+          <label>Current Role / Title</label>
+          <input type="text" id="current_role" placeholder="Senior Research Scientist" />
+        </div>
+        <div class="field full">
+          <label>Institution / Organization</label>
+          <input type="text" id="institution" placeholder="Google DeepMind" />
+        </div>
+        <div class="field full">
+          <label>Additional Context <span class="optional">(optional)</span></label>
+          <textarea id="additional_context" rows="3" placeholder="Any other relevant background (e.g., PhD from MIT, 10 years of experience, key industry impact...)"></textarea>
+        </div>
+      </div>
+      <div class="nav-buttons">
+        <button class="btn btn-secondary" onclick="goTo(1)">← Back</button>
+        <button class="btn" onclick="goTo(3)">Continue →</button>
+      </div>
+    </section>
+
+    <!-- Step 3: Criteria selection -->
+    <section class="card hidden" id="section-3">
+      <h2 id="criteria-heading">Select your qualifying criteria</h2>
+      <p id="criteria-subtext" class="hint"></p>
+      <div id="criteria-list" class="criteria-grid"></div>
+      <div class="nav-buttons">
+        <button class="btn btn-secondary" onclick="goTo(2)">← Back</button>
+        <button class="btn" onclick="goTo(4)" id="btn-step3" disabled>Continue →</button>
+      </div>
+    </section>
+
+    <!-- Step 4: Evidence details -->
+    <section class="card hidden" id="section-4">
+      <h2>Describe your evidence for each criterion</h2>
+      <p class="hint">Be specific — include numbers, names, publications, awards, salary figures, etc. The more detail you provide, the stronger your petition draft will be.</p>
+      <div id="evidence-fields"></div>
+      <div class="nav-buttons">
+        <button class="btn btn-secondary" onclick="goTo(3)">← Back</button>
+        <button class="btn" onclick="goTo(5)">Continue →</button>
+      </div>
+    </section>
+
+    <!-- Step 5: Generate -->
+    <section class="card hidden" id="section-5">
+      <h2>Your Petition Draft</h2>
+      <div id="generate-prompt" class="generate-prompt">
+        <p>Ready to generate your <strong id="summary-type"></strong> petition draft for <strong id="summary-name"></strong>.</p>
+        <p class="hint">Claude will draft a complete petition letter based on your evidence. This typically takes 30–60 seconds.</p>
+        <button class="btn btn-generate" onclick="generatePetition()">✨ Generate Petition Draft</button>
+        <button class="btn btn-secondary" onclick="goTo(4)">← Back</button>
+      </div>
+
+      <div id="generating-indicator" class="hidden">
+        <div class="spinner"></div>
+        <p>Drafting your petition letter...</p>
+      </div>
+
+      <div id="output-area" class="hidden">
+        <div class="output-actions">
+          <button class="btn btn-secondary" onclick="copyOutput()">📋 Copy Text</button>
+          <button class="btn btn-secondary" onclick="downloadOutput()">⬇️ Download .txt</button>
+          <button class="btn btn-secondary" onclick="regenerate()">🔄 Regenerate</button>
+        </div>
+        <div id="petition-output" class="petition-output"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>⚠️ This tool generates a <strong>draft</strong> for reference. Always review with a qualified immigration attorney before filing.</p>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
