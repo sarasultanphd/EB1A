@@ -3,242 +3,290 @@
 // ── State ──────────────────────────────────────────────────────────────────
 const state = {
   petitionType: null,
-  currentStep: 1,
-  selectedCriteria: new Set(),
   outputText: "",
 };
 
-// ── Criteria definitions ───────────────────────────────────────────────────
+// ── Criteria per pathway ──────────────────────────────────────────────────
 const EB1A_CRITERIA = [
   {
     id: "awards",
     label: "Prize or Award for Excellence",
-    desc: "Receipt of a lesser nationally or internationally recognized prize or award for excellence in the field",
-    hint: "List prizes/awards, issuing body, competition scope, selectivity, prestige. Include years.",
+    desc: "Nationally/internationally recognized prize for excellence in the field",
+    hint: "List every award: name, issuing organization, year, competition scope, selectivity (e.g. '1 in 500 applicants'). More detail = stronger case.",
   },
   {
     id: "membership",
-    label: "Membership in Associations Requiring Outstanding Achievement",
-    desc: "Membership in associations that require outstanding achievements of their members",
-    hint: "Name the association(s), their membership criteria, who judges applications, and your membership status.",
+    label: "Membership Requiring Outstanding Achievement",
+    desc: "Association membership judged by recognized experts requiring outstanding achievement",
+    hint: "Name the association(s), describe their admission criteria and who judges applications. Explain why being elected is an honor.",
   },
   {
     id: "press",
     label: "Published Material About You in Major Media",
-    desc: "Published material about the alien in professional or major trade publications, major media, or other major publications",
-    hint: "List articles, publications, outlets (circulation/readership), dates, and what they covered about you.",
+    desc: "Articles/features about you in professional, major trade, or major media",
+    hint: "List each article: title, publication, date, circulation/audience size, what it said about you. MUST be about you, not just mentioning you.",
   },
   {
     id: "judging",
     label: "Judging the Work of Others",
-    desc: "Participation as a judge of the work of others in the field",
-    hint: "List conference/journal review roles, panels, competitions. Include volume (e.g., # papers reviewed per year).",
+    desc: "Invited to judge others' work — conferences, journals, competitions, grant panels",
+    hint: "List conferences/journals, years, volume (e.g. '40 papers/year for NeurIPS'). Invitations to judge at highly selective venues are strongest.",
   },
   {
     id: "contributions",
-    label: "Original Scientific, Scholarly, or Business Contributions of Major Significance",
-    desc: "Evidence of original scientific, scholarly, artistic, athletic, or business-related contributions of major significance",
-    hint: "Describe key innovations, patents, methods, products. Explain their impact on the field with citations/adoption metrics.",
+    label: "Original Contributions of Major Significance",
+    desc: "Original scientific, scholarly, artistic, or business contributions of major significance",
+    hint: "Describe your key innovations. Show impact: adoption rate, citations, products built on your work, field paradigm shifts. Quantify everything.",
   },
   {
     id: "articles",
     label: "Authorship of Scholarly Articles",
-    desc: "Authorship of scholarly articles in the field in professional or major trade publications or other major media",
-    hint: "Total publications, venues (journal/conference names, impact factors/rankings), total citations, h-index.",
+    desc: "Authored scholarly articles in professional or major trade publications",
+    hint: "Total papers, top venues (journal impact factor or conference acceptance rate), total citations, h-index. Mention highly-cited individual papers.",
   },
   {
     id: "exhibitions",
-    label: "Display of Work at Artistic Exhibitions or Showcases",
-    desc: "Display of the alien's work in the field at artistic exhibitions or showcases",
-    hint: "List exhibitions, venues, dates, audiences, and any notable curators or institutions involved.",
+    label: "Display of Work at Artistic Exhibitions",
+    desc: "Work displayed at artistic exhibitions or showcases",
+    hint: "List exhibitions: venue, city, dates, audience reach, curators. Distinguish solo vs. group shows.",
   },
   {
     id: "critical_role",
     label: "Leading or Critical Role for Distinguished Organizations",
-    desc: "Performance in a leading or critical role for distinguished organizations or establishments",
-    hint: "Describe your role, the organization's reputation/ranking, scope of responsibility, and specific impact.",
+    desc: "Leading or critical role for a distinguished organization or establishment",
+    hint: "Describe your exact role, the org's prominence (rankings, revenue, reputation), scope of your responsibilities, and measurable impact.",
   },
   {
     id: "high_salary",
-    label: "High Salary or Remuneration Relative to Others in the Field",
-    desc: "Evidence of a high salary or other significantly high remuneration for services in relation to others in the field",
-    hint: "State your compensation, compare to field median (BLS or published surveys), explain what percentile you are in.",
+    label: "High Salary Relative to Others in the Field",
+    desc: "High salary or remuneration significantly above others in the field",
+    hint: "State your compensation (base + bonus + equity). Compare to BLS national median or industry surveys. What percentile are you in?",
   },
   {
     id: "commercial_success",
     label: "Commercial Success in the Performing Arts",
-    desc: "Evidence of commercial successes in the performing arts",
-    hint: "Box office figures, album sales, streaming numbers, ticket revenue — compared to field averages.",
+    desc: "Commercial successes in performing arts via box office receipts, album sales, etc.",
+    hint: "Provide concrete numbers: tickets sold, streaming plays, box office totals. Compare to field averages.",
   },
 ];
 
 const NIW_CRITERIA = [
   {
     id: "prong1",
-    label: "Prong 1 — Substantial Merit and National Importance",
-    desc: "The proposed endeavor has both substantial merit and national importance",
-    hint: "Describe your proposed work/research. Why is it important nationally? What problem does it solve? Include field significance and US-specific impact (health, economy, security, STEM, etc.).",
+    label: "Prong 1 — Substantial Merit & National Importance",
+    desc: "The proposed endeavor has both substantial merit and national importance to the United States",
+    hint: "Describe the problem you are solving and why it matters to the US. Be specific about the national benefit (healthcare, economy, national security, scientific competitiveness, etc.). Cite data where possible.",
   },
   {
     id: "prong2",
     label: "Prong 2 — Well Positioned to Advance the Endeavor",
-    desc: "The petitioner is well positioned to advance the proposed endeavor",
-    hint: "Evidence of your qualifications: education, publications, citations, patents, prior results, letters from experts, recognition, grants, institutional affiliations.",
+    desc: "You are well positioned to advance the proposed endeavor based on education, skills, and track record",
+    hint: "List your qualifications: degrees, publications, citations, patents, grants, prior results, collaborators, institutional support. Show you are the right person to do this work.",
   },
   {
     id: "prong3",
-    label: "Prong 3 — Balance of National Interest Favors Waiving Job Offer",
-    desc: "On balance, it would be beneficial to the United States to waive the job offer and labor certification requirements",
-    hint: "Why should USCIS waive the normal requirements? E.g., critical shortage, unique expertise unavailable in the US workforce, urgency of the work, existing US employer/collaborators.",
+    label: "Prong 3 — National Interest Supports Waiving Job Offer",
+    desc: "On balance, the national interest benefits from waiving the job offer and labor certification requirements",
+    hint: "Argue why the usual process (PERM labor certification) would be impractical or counterproductive here. E.g. the work is in the national interest but hard to define a single employer for; you have US collaborators/funding; the field has a shortage; unique expertise unavailable domestically.",
   },
 ];
 
-// ── Step navigation ────────────────────────────────────────────────────────
-function goTo(step) {
-  if (step === 3) populateCriteria();
-  if (step === 4) populateEvidenceFields();
-  if (step === 5) populateSummary();
+// ── Read profile from form ────────────────────────────────────────────────
+function getProfile() {
+  return {
+    full_name: val("full_name"),
+    field: val("field"),
+    subfield: val("subfield"),
+    education: val("education"),
+    country: val("country"),
+    current_role: val("current_role"),
+    institution: val("institution"),
+    years_in_field: parseInt(val("years_in_field")) || 0,
+    num_publications: parseInt(val("num_publications")) || 0,
+    top_venues: val("top_venues"),
+    total_citations: parseInt(val("total_citations")) || 0,
+    h_index: parseInt(val("h_index")) || 0,
+    awards: val("awards"),
+    memberships: val("memberships"),
+    reviewing: val("reviewing"),
+    leadership: val("leadership"),
+    contributions: val("contributions"),
+    salary_context: val("salary_context"),
+    media_coverage: val("media_coverage"),
+    proposed_endeavor: val("proposed_endeavor"),
+    other: val("other"),
+  };
+}
 
-  document.getElementById(`section-${state.currentStep}`).classList.add("hidden");
-  document.getElementById(`section-${step}`).classList.remove("hidden");
+function val(id) {
+  const el = document.getElementById(id);
+  return el ? el.value.trim() : "";
+}
 
-  document.querySelectorAll(".step").forEach((el) => {
-    const s = parseInt(el.dataset.step);
-    el.classList.remove("active", "done");
-    if (s === step) el.classList.add("active");
-    else if (s < step) el.classList.add("done");
-  });
+// ── Phase navigation ──────────────────────────────────────────────────────
+function showPhase(n) {
+  document.querySelectorAll(".phase").forEach((el) => el.classList.add("hidden"));
+  document.getElementById(`phase-${n}`).classList.remove("hidden");
 
-  state.currentStep = step;
+  const labels = ["", "Profile", "Assessment", "Strategy", "Evidence", "Draft"];
+  const badge = document.getElementById("phase-badge");
+  badge.textContent = `Phase ${n} of 5 — ${labels[n]}`;
+
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-// ── Step 1: Type selection ─────────────────────────────────────────────────
-function selectType(type) {
+function backTo(n) {
+  showPhase(n);
+}
+
+// ── Phase 2: Qualification assessment ─────────────────────────────────────
+async function runAssessment() {
+  const profile = getProfile();
+  if (!profile.full_name || !profile.field) {
+    alert("Please fill in at least your name and field before continuing.");
+    return;
+  }
+
+  showPhase(2);
+
+  const loadingEl = document.getElementById("assessment-loading");
+  const textEl = document.getElementById("assessment-text");
+  const actionsEl = document.getElementById("assessment-actions");
+
+  loadingEl.style.display = "flex";
+  textEl.textContent = "";
+  actionsEl.classList.add("hidden");
+
+  await streamToElement("/assess", profile, textEl, loadingEl, () => {
+    renderMarkdown(textEl);
+    actionsEl.classList.remove("hidden");
+  });
+}
+
+// ── Phase 3: Strategy ──────────────────────────────────────────────────────
+function choosePath(type) {
   state.petitionType = type;
-  state.selectedCriteria.clear();
 
-  document.querySelectorAll(".type-card").forEach((c) => c.classList.remove("selected"));
-  document.getElementById(`type-${type}`).classList.add("selected");
-  document.getElementById("btn-step1").disabled = false;
+  document.getElementById("choice-EB1A").classList.toggle("selected", type === "EB1A");
+  document.getElementById("choice-NIW").classList.toggle("selected", type === "NIW");
+
+  const label = type === "EB1A" ? "EB-1A Extraordinary Ability" : "NIW National Interest Waiver";
+  document.getElementById("strategy-heading").textContent = `${label} Strategy`;
+
+  showPhase(3);
+  runStrategy();
 }
 
-// ── Step 3: Criteria ───────────────────────────────────────────────────────
-function populateCriteria() {
+async function runStrategy() {
+  const loadingEl = document.getElementById("strategy-loading");
+  const textEl = document.getElementById("strategy-text");
+  const actionsEl = document.getElementById("strategy-actions");
+
+  loadingEl.style.display = "flex";
+  textEl.textContent = "";
+  actionsEl.classList.add("hidden");
+
+  const payload = { profile: getProfile(), petition_type: state.petitionType };
+
+  await streamToElement("/strategy", payload, textEl, loadingEl, () => {
+    renderMarkdown(textEl);
+    actionsEl.classList.remove("hidden");
+  });
+}
+
+// ── Phase 4: Evidence + gap analysis ─────────────────────────────────────
+function goToEvidence() {
+  buildEvidenceFields();
+  showPhase(4);
+  // Hide gap output
+  document.getElementById("gaps-output-card").classList.add("hidden");
+  document.getElementById("gaps-actions").classList.add("hidden");
+}
+
+function goTo(n) {
+  if (n === 5) prepareDraftPhase();
+  showPhase(n);
+}
+
+function buildEvidenceFields() {
   const criteria = state.petitionType === "EB1A" ? EB1A_CRITERIA : NIW_CRITERIA;
-  const heading = document.getElementById("criteria-heading");
-  const subtext = document.getElementById("criteria-subtext");
-  const list = document.getElementById("criteria-list");
-
-  if (state.petitionType === "EB1A") {
-    heading.textContent = "Select the EB-1A criteria you meet";
-    subtext.textContent = "You must meet at least 3 of the 10 criteria below. Select all that apply to you.";
-  } else {
-    heading.textContent = "Provide evidence for the NIW Dhanasar framework";
-    subtext.textContent = "You must address all 3 prongs. All are required and pre-selected.";
-    // For NIW, pre-select all 3
-    criteria.forEach((c) => state.selectedCriteria.add(c.id));
-  }
-
-  list.innerHTML = criteria
-    .map((c) => {
-      const checked = state.selectedCriteria.has(c.id);
-      const disabled = state.petitionType === "NIW" ? "disabled" : "";
-      return `
-      <div class="criterion-item ${checked ? "selected" : ""}" onclick="${state.petitionType === "EB1A" ? `toggleCriterion('${c.id}', this)` : ""}">
-        <input type="checkbox" id="chk-${c.id}" ${checked ? "checked" : ""} ${disabled} />
-        <div class="criterion-text">
-          <strong>${c.label}</strong>
-          <span>${c.desc}</span>
-        </div>
-      </div>`;
-    })
-    .join("");
-
-  updateStep3Button();
-}
-
-function toggleCriterion(id, el) {
-  const chk = document.getElementById(`chk-${id}`);
-  if (state.selectedCriteria.has(id)) {
-    state.selectedCriteria.delete(id);
-    chk.checked = false;
-    el.classList.remove("selected");
-  } else {
-    state.selectedCriteria.add(id);
-    chk.checked = true;
-    el.classList.add("selected");
-  }
-  updateStep3Button();
-}
-
-function updateStep3Button() {
-  const min = state.petitionType === "EB1A" ? 3 : 3;
-  document.getElementById("btn-step3").disabled = state.selectedCriteria.size < min;
-}
-
-// ── Step 4: Evidence fields ────────────────────────────────────────────────
-function populateEvidenceFields() {
-  const criteria = state.petitionType === "EB1A" ? EB1A_CRITERIA : NIW_CRITERIA;
-  const selected = criteria.filter((c) => state.selectedCriteria.has(c.id));
-  const container = document.getElementById("evidence-fields");
-
-  container.innerHTML = selected
+  const container = document.getElementById("evidence-fields-container");
+  container.innerHTML = criteria
     .map(
       (c) => `
-    <div class="evidence-field">
-      <label>${c.label}</label>
-      <p class="hint">${c.hint}</p>
+    <div class="evidence-block">
+      <span class="ev-label">${c.label}</span>
+      <div class="ev-desc">${c.desc}</div>
+      <div class="ev-hint">💡 ${c.hint}</div>
       <textarea id="ev-${c.id}" rows="5" placeholder="Describe your specific evidence here..."></textarea>
     </div>`
     )
     .join("");
 }
 
-// ── Step 5: Summary + generation ──────────────────────────────────────────
-function populateSummary() {
-  const name = document.getElementById("full_name").value.trim() || "you";
-  document.getElementById("summary-type").textContent =
+function getEvidenceItems() {
+  const criteria = state.petitionType === "EB1A" ? EB1A_CRITERIA : NIW_CRITERIA;
+  return criteria.map((c) => ({
+    criterion_id: c.id,
+    criterion_label: c.label,
+    evidence: val(`ev-${c.id}`),
+  }));
+}
+
+async function runGapAnalysis() {
+  const gapsCard = document.getElementById("gaps-output-card");
+  const loadingEl = document.getElementById("gaps-loading");
+  const textEl = document.getElementById("gaps-text");
+  const actionsEl = document.getElementById("gaps-actions");
+
+  gapsCard.classList.remove("hidden");
+  loadingEl.style.display = "flex";
+  textEl.textContent = "";
+  actionsEl.classList.add("hidden");
+
+  gapsCard.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  const payload = {
+    profile: getProfile(),
+    petition_type: state.petitionType,
+    items: getEvidenceItems(),
+  };
+
+  await streamToElement("/evidence-gaps", payload, textEl, loadingEl, () => {
+    renderMarkdown(textEl);
+    actionsEl.classList.remove("hidden");
+  });
+}
+
+// ── Phase 5: Generate ──────────────────────────────────────────────────────
+function prepareDraftPhase() {
+  const name = val("full_name") || "you";
+  const typeLabel =
     state.petitionType === "EB1A" ? "EB-1A Extraordinary Ability" : "NIW National Interest Waiver";
+  document.getElementById("summary-type").textContent = typeLabel;
   document.getElementById("summary-name").textContent = name;
 
-  // Reset output area
-  document.getElementById("generate-prompt").classList.remove("hidden");
-  document.getElementById("generating-indicator").classList.add("hidden");
-  document.getElementById("output-area").classList.add("hidden");
+  document.getElementById("generate-prompt-card").classList.remove("hidden");
+  document.getElementById("generating-card").classList.add("hidden");
+  document.getElementById("output-card").classList.add("hidden");
   document.getElementById("petition-output").textContent = "";
   state.outputText = "";
 }
 
-// ── Generate petition ──────────────────────────────────────────────────────
 async function generatePetition() {
-  const criteria = state.petitionType === "EB1A" ? EB1A_CRITERIA : NIW_CRITERIA;
-  const selectedCriteria = criteria
-    .filter((c) => state.selectedCriteria.has(c.id))
-    .map((c) => ({
-      criterion_id: c.id,
-      criterion_label: c.label,
-      evidence: (document.getElementById(`ev-${c.id}`) || {}).value || "",
-    }));
-
-  const payload = {
-    petition_type: state.petitionType,
-    full_name: document.getElementById("full_name").value.trim(),
-    field: document.getElementById("field").value.trim(),
-    country: document.getElementById("country").value.trim(),
-    current_role: document.getElementById("current_role").value.trim(),
-    institution: document.getElementById("institution").value.trim(),
-    additional_context: document.getElementById("additional_context").value.trim(),
-    criteria: selectedCriteria,
-  };
-
-  document.getElementById("generate-prompt").classList.add("hidden");
-  document.getElementById("generating-indicator").classList.remove("hidden");
-  document.getElementById("output-area").classList.add("hidden");
+  document.getElementById("generate-prompt-card").classList.add("hidden");
+  document.getElementById("generating-card").classList.remove("hidden");
+  document.getElementById("output-card").classList.add("hidden");
 
   const outputEl = document.getElementById("petition-output");
   outputEl.textContent = "";
   state.outputText = "";
+
+  const payload = {
+    profile: getProfile(),
+    petition_type: state.petitionType,
+    items: getEvidenceItems(),
+  };
 
   try {
     const res = await fetch("/generate", {
@@ -247,43 +295,19 @@ async function generatePetition() {
       body: JSON.stringify(payload),
     });
 
-    if (!res.ok) {
-      throw new Error(`Server error: ${res.status}`);
-    }
+    if (!res.ok) throw new Error(`Server error: ${res.status}`);
 
-    document.getElementById("generating-indicator").classList.add("hidden");
-    document.getElementById("output-area").classList.remove("hidden");
+    document.getElementById("generating-card").classList.add("hidden");
+    document.getElementById("output-card").classList.remove("hidden");
 
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop();
-
-      for (const line of lines) {
-        if (line.startsWith("data: ")) {
-          const data = line.slice(6).trim();
-          if (data === "[DONE]") break;
-          try {
-            const parsed = JSON.parse(data);
-            if (parsed.text) {
-              state.outputText += parsed.text;
-              outputEl.textContent = state.outputText;
-            }
-          } catch (_) {}
-        }
-      }
-    }
+    await readStream(res, (text) => {
+      state.outputText += text;
+      outputEl.textContent = state.outputText;
+    });
   } catch (err) {
-    document.getElementById("generating-indicator").classList.add("hidden");
-    document.getElementById("generate-prompt").classList.remove("hidden");
-    alert(`Error generating petition: ${err.message}\n\nMake sure ANTHROPIC_API_KEY is set.`);
+    document.getElementById("generating-card").classList.add("hidden");
+    document.getElementById("generate-prompt-card").classList.remove("hidden");
+    alert(`Error: ${err.message}\n\nMake sure ANTHROPIC_API_KEY is set.`);
   }
 }
 
@@ -297,7 +321,7 @@ function copyOutput() {
 }
 
 function downloadOutput() {
-  const name = (document.getElementById("full_name").value.trim() || "petition").replace(/\s+/g, "_");
+  const name = (val("full_name") || "petition").replace(/\s+/g, "_");
   const blob = new Blob([state.outputText], { type: "text/plain" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
@@ -306,6 +330,83 @@ function downloadOutput() {
 }
 
 function regenerate() {
-  document.getElementById("output-area").classList.add("hidden");
-  document.getElementById("generate-prompt").classList.remove("hidden");
+  prepareDraftPhase();
 }
+
+// ── Streaming utility ──────────────────────────────────────────────────────
+async function streamToElement(url, payload, textEl, loadingEl, onDone) {
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
+    loadingEl.style.display = "none";
+    let accumulated = "";
+
+    await readStream(res, (text) => {
+      accumulated += text;
+      textEl.textContent = accumulated;
+    });
+
+    if (onDone) onDone();
+  } catch (err) {
+    loadingEl.style.display = "none";
+    textEl.textContent = `Error: ${err.message}\n\nMake sure ANTHROPIC_API_KEY is set.`;
+  }
+}
+
+async function readStream(res, onText) {
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop();
+
+    for (const line of lines) {
+      if (line.startsWith("data: ")) {
+        const data = line.slice(6).trim();
+        if (data === "[DONE]") return;
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed.text) onText(parsed.text);
+        } catch (_) {}
+      }
+    }
+  }
+}
+
+// ── Simple markdown renderer (h2/h3/bold/bullets) ─────────────────────────
+function renderMarkdown(el) {
+  let html = el.textContent
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    // h2 ## Heading
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    // h3 ### Heading
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    // **bold**
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    // bullet lines starting with - or *
+    .replace(/^[-*] (.+)$/gm, '<li>$1</li>')
+    // wrap consecutive li in ul
+    .replace(/(<li>.*<\/li>\n?)+/g, (m) => `<ul>${m}</ul>`)
+    // blank lines become paragraphs
+    .replace(/\n\n+/g, '</p><p>')
+    .replace(/^(?!<[hul])(.+)$/gm, (m) => m.startsWith('<') ? m : m);
+
+  el.innerHTML = `<p>${html}</p>`;
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+showPhase(1);
