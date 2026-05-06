@@ -1,4 +1,0 @@
-anthropic
-fastapi
-uvicorn[standard]
-python-multipart
